@@ -1,0 +1,13 @@
+# Available variables
+# - ?class - source class
+# - ?property - property
+# - ?range - class or datatype
+# - ?minCount - minimal count
+# - ?maxCount - maximal count
+# - ?className - source class name
+# - ?propertyName - property name
+# - ?rangeName - range name
+
+SELECT ?class ?property ?range ?className ?propertyName ?rangeName ?minCount ?maxCount {
+
+}

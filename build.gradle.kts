@@ -1,6 +1,6 @@
 plugins {
     application
-    kotlin("jvm") version "1.9.23"
+    alias(libs.plugins.kotlin.jvm)
 }
 
 group = "zone.cogni.semanticz"
@@ -12,11 +12,11 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.slf4j:slf4j-api:2.0.12")
-    runtimeOnly("org.slf4j:slf4j-simple:2.0.12")
-    implementation("org.apache.jena:jena-arq:5.0.0")
-    testImplementation(platform("org.junit:junit-bom:5.9.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    implementation(libs.slf4j.api)
+    runtimeOnly(libs.slf4j.simple)
+    implementation(libs.jena.arq)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
 }
 
 tasks.test {

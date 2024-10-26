@@ -1,0 +1,17 @@
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?field {}
+VALUES ?field {
+    xsd:string
+    xsd:int
+    xsd:integer
+    xsd:positiveInteger
+    xsd:dateTime
+    rdf:langString
+    xsd:anyURI
+    xsd:boolean
+    xsd:duration
+    xsd:decimal
+    rdf:HTML
+}

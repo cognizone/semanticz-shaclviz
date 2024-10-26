@@ -1,70 +1,102 @@
 package zone.cogni.semanticz.shaclviz
 
+import org.apache.jena.query.Query
 import org.apache.jena.query.QueryExecution
 import org.apache.jena.query.QuerySolution
-import java.io.File
-import java.nio.file.Files
+import org.apache.jena.query.ResultSet
+import org.apache.jena.rdf.model.Model
+import org.apache.jena.sparql.core.Var
+import org.apache.jena.sparql.engine.binding.Binding
 
 /**
  * Representation of a graph.
  */
 class Graph {
 
-    private val classes: MutableList<Class> = ArrayList()
-    private val edges: MutableList<QuerySolution> = ArrayList()
+    val classes: MutableList<Class> = ArrayList()
+    var edges: MutableList<Constraint> = ArrayList()
+
+    companion object {
+        private fun resultSetToValuesBlock(resultSet: ResultSet): List<Binding> {
+            val bindings = mutableListOf<Binding>()
+            while (resultSet.hasNext()) {
+                bindings.add(resultSet.nextBinding())
+            }
+            return bindings
+        }
+
+        private val vars = mutableListOf(
+            "class",
+            "className",
+            "property",
+            "propertyName",
+            "range",
+            "rangeName",
+            "minCount",
+            "maxCount"
+        )
+
+        fun minCount(e: Constraint) = e.minCount?.toInt()
+
+        fun maxCount(e: Constraint) = e.maxCount
+
+        private fun parseConstraints(model: Model, graphQuery: Query, filterQuery: Query): List<Constraint> {
+            val edges = mutableListOf<Constraint>()
+            val valuesBlock = resultSetToValuesBlock(QueryExecution.create(graphQuery, model).execSelect())
+            filterQuery.setValuesDataBlock(vars.map { varName: String -> Var.alloc(varName) }, valuesBlock)
+            QueryExecution.create(graphQuery, model).execSelect().forEachRemaining { s: QuerySolution ->
+                println(s)
+                edges.add(
+                    Constraint(
+                        s[vars[0]].toString(),
+                        s[vars[1]]?.toString(),
+                        s[vars[2]]?.toString(),
+                        s[vars[3]]?.toString(),
+                        s[vars[4]]?.toString(),
+                        s[vars[5]]?.toString(),
+                        s[vars[6]]?.asLiteral()?.lexicalForm,
+                        s[vars[7]]?.asLiteral()?.lexicalForm,
+                    )
+                )
+            }
+            return edges
+        }
+    }
 
     fun parse(
-        qe: QueryExecution,
-        fieldClasses: Set<String>,
-        filter: (s: String, p: String?, o: String?, req: Boolean) -> Boolean
+        model: Model,
+        graphQuery: Query,
+        filterQuery: Query,
+        fieldQuery: Query,
     ) {
-        qe.execSelect().forEachRemaining { s: QuerySolution ->
-            val clsName = s["className"].toString()
-            val prpName = s["propertyName"]?.toString()
-            val rngName = s["rangeName"]?.toString()
-            val clsIri = s["class"].toString()
-            val prpIri = s["property"]?.toString()
-            val rngIri = s["range"]?.toString()
+        val constraints: List<Constraint> = parseConstraints(model, graphQuery, filterQuery)
 
-            val required = required(s)
+        val fieldClasses = mutableListOf<String>()
 
-            if (!filter(clsIri, prpIri, rngIri, required)) {
-                return@forEachRemaining
-            }
+        QueryExecution.create(fieldQuery, model).execSelect().forEachRemaining { s: QuerySolution ->
+            fieldClasses.add(s.get("field").toString())
+        }
 
-            if (prpIri != null && rngIri != null) {
-                if (classes.all { it.iri != clsIri }) classes.add(Class(clsIri, clsName))
-                val cc = classes.first { it.iri == clsIri }
-                if (classes.all { it.iri != rngIri }) classes.add(Class(rngIri, rngName))
-                val rng = classes.first { it.iri == rngIri }
-                if (fieldClasses.contains(rngIri)) {
-                    cc.addField(Property(prpIri, prpName), rng, countInfo(minCount(s)!!, maxCount(s)!!.string))
+        constraints.forEach { edge ->
+            if (edge.propertyIri != null && edge.rangeIri != null) {
+                if (classes.all { it.iri != edge.classIri }) classes.add(Class(edge.classIri, edge.className))
+                val cc = classes.first { it.iri == edge.classIri }
+                if (classes.all { it.iri != edge.rangeIri }) classes.add(Class(edge.rangeIri, edge.rangeName))
+                val rng = classes.first { it.iri == edge.rangeIri }
+                if (fieldClasses.contains(edge.rangeIri)) {
+                    cc.addField(
+                        Property(edge.propertyIri, edge.propertyName),
+                        rng,
+                        minCount(edge)!!,
+                        maxCount(edge)!!
+                    )
                 } else {
-                    edges.add(s)
+                    edges.add(edge)
                 }
             }
         }
     }
 
-    private fun classIndex(e: QuerySolution, n: String) =
-        (classes.indexOfFirst { it.iri == e[n].toString() } + 1).toString()
-
-    private fun required(e: QuerySolution) = (minCount(e) ?: 0) > 0
-
-    private fun minCount(e: QuerySolution) = e.get("minCount")?.asLiteral()?.int
-
-    private fun maxCount(e: QuerySolution) = e.get("maxCount")?.asLiteral()
-
-    private fun countInfo(minCount : Int, maxCount: String) = if (minCount != 0 || maxCount != "*") "[${minCount},${maxCount}]" else ""
-
-    fun exportToTgf(fileName: String) {
-        val result = classes.mapIndexed { index, c ->
-            "${index + 1} ${c.getHTMLLabel()}"
-        }.joinToString(separator = "\n") + "\n" + "#\n" +
-                edges.joinToString(separator = "\n") { e: QuerySolution ->
-                    val propertyName = "${e["propertyName"].asLiteral()} ${countInfo(minCount(e)!!,maxCount(e)!!.string)}"
-                    "${classIndex(e, "class")} ${classIndex(e, "range")} <html><body>$propertyName</body></html>"
-                }
-        Files.writeString(File(fileName).toPath(), result)
-    }
+    fun classIndex(n: String) =
+        (classes.indexOfFirst { it.iri == n } + 1).toString()
 }

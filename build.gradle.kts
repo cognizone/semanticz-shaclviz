@@ -11,7 +11,8 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation(libs.clikt)
+    implementation(libs.clikt.markdown)
     implementation(libs.slf4j.api)
     runtimeOnly(libs.slf4j.simple)
     implementation(libs.jena.arq)
@@ -28,5 +29,5 @@ kotlin {
 }
 
 application {
-    mainClass.set("zone.cogni.semanticz.shaclviz.GenerateDiagramKt")
+    mainClass.set("zone.cogni.semanticz.shaclviz.CLIKt")
 }

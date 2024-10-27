@@ -1,4 +1,4 @@
-package zone.cogni.semanticz.shaclviz
+package zone.cogni.semanticz.shaclviz.model
 
 import org.apache.jena.query.Query
 import org.apache.jena.query.QueryExecution
@@ -44,7 +44,7 @@ class Graph {
             val edges = mutableListOf<Constraint>()
             val valuesBlock = resultSetToValuesBlock(QueryExecution.create(graphQuery, model).execSelect())
             filterQuery.setValuesDataBlock(vars.map { varName: String -> Var.alloc(varName) }, valuesBlock)
-            QueryExecution.create(graphQuery, model).execSelect().forEachRemaining { s: QuerySolution ->
+            QueryExecution.create(filterQuery, model).execSelect().forEachRemaining { s: QuerySolution ->
                 println(s)
                 edges.add(
                     Constraint(

@@ -1,9 +1,12 @@
-package zone.cogni.semanticz.shaclviz
+package zone.cogni.semanticz.shaclviz.export
 
-import zone.cogni.semanticz.shaclviz.Graph.Companion.maxCount
-import zone.cogni.semanticz.shaclviz.Graph.Companion.minCount
-import java.io.File
-import java.nio.file.Files
+import zone.cogni.semanticz.shaclviz.model.Graph.Companion.maxCount
+import zone.cogni.semanticz.shaclviz.model.Graph.Companion.minCount
+import zone.cogni.semanticz.shaclviz.model.Class
+import zone.cogni.semanticz.shaclviz.model.Constraint
+import zone.cogni.semanticz.shaclviz.model.Graph
+import zone.cogni.semanticz.shaclviz.model.Property
+import java.io.Writer
 
 /**
  * Representation of a data model class.
@@ -24,7 +27,7 @@ class TgfExporter : Exporter {
             } else ""
         }</body></html>"
 
-    override fun export(graph: Graph, fileName: String) {
+    override fun export(graph: Graph, writer: Writer) {
         val result = graph.classes.mapIndexed { index, c ->
             "${index + 1} ${render(c)}"
         }.joinToString(separator = "\n") + "\n" + "#\n" +
@@ -33,6 +36,6 @@ class TgfExporter : Exporter {
                         "${e.propertyName} ${countInfo(minCount(e)!!, maxCount(e)!!)}"
                     "${graph.classIndex(e.classIri)} ${graph.classIndex(e.rangeIri?:"")} <html><body>$propertyName</body></html>"
                 }
-        Files.writeString(File(fileName).toPath(), result)
+        writer.write(result)
     }
 }

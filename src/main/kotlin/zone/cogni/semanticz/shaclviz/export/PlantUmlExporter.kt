@@ -1,9 +1,12 @@
-package zone.cogni.semanticz.shaclviz
+package zone.cogni.semanticz.shaclviz.export
 
-import zone.cogni.semanticz.shaclviz.Graph.Companion.maxCount
-import zone.cogni.semanticz.shaclviz.Graph.Companion.minCount
-import java.io.File
-import java.nio.file.Files
+import zone.cogni.semanticz.shaclviz.model.Graph.Companion.maxCount
+import zone.cogni.semanticz.shaclviz.model.Graph.Companion.minCount
+import zone.cogni.semanticz.shaclviz.model.Class
+import zone.cogni.semanticz.shaclviz.model.Constraint
+import zone.cogni.semanticz.shaclviz.model.Graph
+import zone.cogni.semanticz.shaclviz.model.Property
+import java.io.Writer
 
 /**
  * Export to PlantUml
@@ -24,8 +27,8 @@ class PlantUmlExporter : Exporter {
                 } else "") + "\n" +
                 "}\n\n"
 
-    override fun export(graph: Graph, fileName: String) {
-        val result = "@startuml \nskinparam linetype polyline\n\n" + graph.classes.mapIndexed { index, c ->
+    override fun export(graph: Graph, writer: Writer) {
+        val result = "@startuml \nskinparam linetype polyline\n\n" + graph.classes.mapIndexed { _, c ->
             render(graph.classIndex(c.iri), c)
         }.joinToString(separator = "\n") + "\n" + "\n" +
                 graph.edges.joinToString(separator = "\n") { e: Constraint ->
@@ -34,6 +37,6 @@ class PlantUmlExporter : Exporter {
                     "c${graph.classIndex(e.classIri)} --> c${graph.classIndex(e.rangeIri?:"")} : \"$propertyName\""
                 } + "\n" +
                 "@enduml"
-        Files.writeString(File(fileName).toPath(), result)
+        writer.write(result)
     }
 }

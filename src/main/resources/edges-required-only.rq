@@ -9,5 +9,7 @@
 # - ?rangeName - range name
 
 SELECT ?class ?property ?range ?className ?propertyName ?rangeName ?minCount ?maxCount {
-    FILTER(?minCount > 0)
+    FILTER EXISTS {
+        FILTER(str(?minCount) > 0)
+    }
 }

@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import org.apache.jena.query.QueryFactory
+import zone.cogni.semanticz.shaclviz.export.Exporter
 import java.io.File
 
 class Generate : CliktCommand() {
@@ -25,13 +26,22 @@ class Generate : CliktCommand() {
         "--fieldQuery",
         help = "Selects additional IRIs to be displayed as fields."
     ).default("classpath:/fields-datatypes.rq")
+    private val outputFormat by option(
+        "--outputFormat",
+        help = """Graph format:
+            - 'puml' - PlantUML diagram format. Suitable for quick visualization.
+            - 'tgf' - Trivial Graph Format importable by yEd. Suitable for full control over layout and further postprocessing.""".trimMargin()
+    ).default("puml")
 
     override fun help(context: Context) = "Generates a diagram"
     override fun run() {
         val graphQuery = QueryFactory.create(loadResourceContent(graphQuery))
         val filterQuery = QueryFactory.create(loadResourceContent(filterQuery))
         val fieldQuery = QueryFactory.create(loadResourceContent(fieldQuery))
-        DiagramGenerator(modelFile, outputFile, graphQuery, filterQuery, fieldQuery).generate()
+        val writer = File(outputFile).bufferedWriter()
+        val exporter = Exporter.get(outputFormat)
+        DiagramGenerator(modelFile, graphQuery, filterQuery, fieldQuery, exporter, writer).generate()
+        writer.close()
     }
 }
 

@@ -2,6 +2,8 @@ package zone.cogni.semanticz.shaclviz
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import zone.cogni.semanticz.shaclviz.model.Class
+import zone.cogni.semanticz.shaclviz.model.Property
 
 class ClassTest {
 

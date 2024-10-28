@@ -45,8 +45,8 @@ class Generate : CliktCommand() {
     }
 }
 
-fun loadResourceContent(path: String): String? {
-    return if (path.startsWith("classpath:")) {
+fun loadResourceContent(path: String): String? =
+    if (path.startsWith("classpath:")) {
         val resourcePath = path.removePrefix("classpath:")
         object {}.javaClass.getResourceAsStream(resourcePath)?.bufferedReader()?.use { it.readText() }
     } else {
@@ -57,6 +57,5 @@ fun loadResourceContent(path: String): String? {
             null
         }
     }
-}
 
 fun main(args: Array<String>) = Generate().main(args)

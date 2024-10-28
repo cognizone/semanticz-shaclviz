@@ -1,12 +1,12 @@
 package zone.cogni.semanticz.shaclviz.model
 
-import org.apache.jena.query.Query
-import org.apache.jena.query.QueryExecution
-import org.apache.jena.query.QuerySolution
-import org.apache.jena.query.ResultSet
+import org.apache.jena.query.*
 import org.apache.jena.rdf.model.Model
+import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.sparql.core.Var
 import org.apache.jena.sparql.engine.binding.Binding
+import org.apache.jena.sparql.syntax.ElementData
+import org.apache.jena.sparql.syntax.ElementGroup
 
 /**
  * Representation of a graph.
@@ -40,25 +40,46 @@ class Graph {
 
         fun maxCount(e: Constraint) = e.maxCount
 
+        private fun setValuesBlockToQueryPattern(query: Query, valuesBlock: List<Binding>) {
+            val valuesBlockNew = ElementData()
+            vars.map { varName: String ->
+                valuesBlockNew.add(Var.alloc(varName))
+            }
+            valuesBlock.forEach { valuesBlockNew.add(it) }
+            ElementGroup().also {
+                it.addElement(valuesBlockNew)
+
+                val originalPattern = query.queryPattern as ElementGroup
+                for (el in originalPattern.elements) {
+                    it.addElement(el)
+                }
+                query.queryPattern = it
+            }
+        }
+
         private fun parseConstraints(model: Model, graphQuery: Query, filterQuery: Query): List<Constraint> {
             val edges = mutableListOf<Constraint>()
             val valuesBlock = resultSetToValuesBlock(QueryExecution.create(graphQuery, model).execSelect())
-            filterQuery.setValuesDataBlock(vars.map { varName: String -> Var.alloc(varName) }, valuesBlock)
-            QueryExecution.create(filterQuery, model).execSelect().forEachRemaining { s: QuerySolution ->
-                println(s)
-                edges.add(
-                    Constraint(
-                        s[vars[0]].toString(),
-                        s[vars[1]]?.toString(),
-                        s[vars[2]]?.toString(),
-                        s[vars[3]]?.toString(),
-                        s[vars[4]]?.toString(),
-                        s[vars[5]]?.toString(),
-                        s[vars[6]]?.asLiteral()?.lexicalForm,
-                        s[vars[7]]?.asLiteral()?.lexicalForm,
+            setValuesBlockToQueryPattern(filterQuery, valuesBlock)
+
+            println(filterQuery.toString(Syntax.syntaxSPARQL))
+
+            QueryExecution.create(filterQuery, ModelFactory.createDefaultModel()).execSelect()
+                .forEachRemaining { s: QuerySolution ->
+                    edges.add(
+                        Constraint(
+                            s[vars[0]].toString(),
+                            s[vars[1]]?.toString(),
+                            s[vars[2]]?.toString(),
+                            s[vars[3]]?.toString(),
+                            s[vars[4]]?.toString(),
+                            s[vars[5]]?.toString(),
+                            s[vars[6]]?.asLiteral()?.lexicalForm,
+                            s[vars[7]]?.asLiteral()?.lexicalForm,
+                        )
                     )
-                )
-            }
+                }
+            println(edges.size)
             return edges
         }
     }

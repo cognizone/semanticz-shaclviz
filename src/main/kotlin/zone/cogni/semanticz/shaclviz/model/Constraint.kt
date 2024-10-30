@@ -10,6 +10,6 @@ class Constraint(
     val propertyName: String?,
     val rangeIri: String?,
     val rangeName: String?,
-    val minCount: String?,
+    val minCount: Int?,
     val maxCount: String?,
 )

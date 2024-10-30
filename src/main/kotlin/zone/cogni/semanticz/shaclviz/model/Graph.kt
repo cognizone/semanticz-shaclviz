@@ -9,21 +9,24 @@ import org.apache.jena.sparql.syntax.ElementData
 import org.apache.jena.sparql.syntax.ElementGroup
 
 /**
- * Representation of a graph.
+ * Representation of a graph structure.
+ *
+ * @property nodes List of nodes in the graph.
+ * @property edges List of graph edges.
  */
 class Graph {
 
-    val classes: MutableList<Class> = ArrayList()
+    /**
+     * List of types in the graph. Constraints interpreted as fields are part of each type.
+     */
+    val nodes: MutableList<Type> = ArrayList()
+
+    /**
+     * List of constraints in the graph interpreted as edges.
+     */
     var edges: MutableList<Constraint> = ArrayList()
 
     companion object {
-        private fun resultSetToValuesBlock(resultSet: ResultSet): List<Binding> {
-            val bindings = mutableListOf<Binding>()
-            while (resultSet.hasNext()) {
-                bindings.add(resultSet.nextBinding())
-            }
-            return bindings
-        }
 
         private val vars = mutableListOf(
             "class",
@@ -36,9 +39,16 @@ class Graph {
             "maxCount"
         )
 
-        fun minCount(e: Constraint) = e.minCount?.toInt()
+        private fun resultSetToValuesBlock(resultSet: ResultSet): List<Binding> =
+            mutableListOf<Binding>().apply {
+                while (resultSet.hasNext()) {
+                    this.add(resultSet.nextBinding())
+                }
+            }
 
-        fun maxCount(e: Constraint) = e.maxCount
+//        fun minCount(e: Constraint) = e.minCount
+
+//        fun maxCount(e: Constraint) = e.maxCount
 
         private fun setValuesBlockToQueryPattern(query: Query, valuesBlock: List<Binding>) {
             val valuesBlockNew = ElementData()
@@ -62,8 +72,6 @@ class Graph {
             val valuesBlock = resultSetToValuesBlock(QueryExecution.create(graphQuery, model).execSelect())
             setValuesBlockToQueryPattern(filterQuery, valuesBlock)
 
-            println(filterQuery.toString(Syntax.syntaxSPARQL))
-
             QueryExecution.create(filterQuery, ModelFactory.createDefaultModel()).execSelect()
                 .forEachRemaining { s: QuerySolution ->
                     edges.add(
@@ -74,12 +82,11 @@ class Graph {
                             s[vars[3]]?.toString(),
                             s[vars[4]]?.toString(),
                             s[vars[5]]?.toString(),
-                            s[vars[6]]?.asLiteral()?.lexicalForm,
+                            s[vars[6]]?.asLiteral()?.lexicalForm?.toInt(),
                             s[vars[7]]?.asLiteral()?.lexicalForm,
                         )
                     )
                 }
-            println(edges.size)
             return edges
         }
     }
@@ -100,16 +107,16 @@ class Graph {
 
         constraints.forEach { edge ->
             if (edge.propertyIri != null && edge.rangeIri != null) {
-                if (classes.all { it.iri != edge.classIri }) classes.add(Class(edge.classIri, edge.className))
-                val cc = classes.first { it.iri == edge.classIri }
-                if (classes.all { it.iri != edge.rangeIri }) classes.add(Class(edge.rangeIri, edge.rangeName))
-                val rng = classes.first { it.iri == edge.rangeIri }
+                if (nodes.all { it.iri != edge.classIri }) nodes.add(Type(edge.classIri, edge.className))
+                val cc = nodes.first { it.iri == edge.classIri }
+                if (nodes.all { it.iri != edge.rangeIri }) nodes.add(Type(edge.rangeIri, edge.rangeName))
+                val rng = nodes.first { it.iri == edge.rangeIri }
                 if (fieldClasses.contains(edge.rangeIri)) {
                     cc.addField(
                         Property(edge.propertyIri, edge.propertyName),
                         rng,
-                        minCount(edge)!!,
-                        maxCount(edge)!!
+                        edge.minCount!!,
+                        edge.maxCount!!
                     )
                 } else {
                     edges.add(edge)
@@ -119,5 +126,5 @@ class Graph {
     }
 
     fun classIndex(n: String) =
-        (classes.indexOfFirst { it.iri == n } + 1).toString()
+        (nodes.indexOfFirst { it.iri == n } + 1).toString()
 }

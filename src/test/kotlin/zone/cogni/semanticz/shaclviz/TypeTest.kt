@@ -20,13 +20,13 @@ class TypeTest {
         val c = Type("http://test.org/test", "test")
         c.addField(Property("http://test.org/testp", "p"), Type("http://test.org/test", "r"), 1, "")
         Assertions.assertEquals(1, c.fields.size)
-        val (property, classWithCardinality) = c.fields.iterator().next()
+        val (property, typeAsRange) = c.fields.iterator().next()
         Assertions.assertEquals("http://test.org/testp", property.iri)
         Assertions.assertEquals("p", property.name)
-        Assertions.assertEquals("http://test.org/test", classWithCardinality.cls.iri)
-        Assertions.assertEquals("r", classWithCardinality.cls.name)
-        Assertions.assertEquals(1, classWithCardinality.min)
-        Assertions.assertEquals("", classWithCardinality.max)
+        Assertions.assertEquals("http://test.org/test", typeAsRange.cls.iri)
+        Assertions.assertEquals("r", typeAsRange.cls.name)
+        Assertions.assertEquals(1, typeAsRange.min)
+        Assertions.assertEquals("", typeAsRange.max)
 
     }
 }

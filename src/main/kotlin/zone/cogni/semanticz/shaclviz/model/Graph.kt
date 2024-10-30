@@ -46,10 +46,6 @@ class Graph {
                 }
             }
 
-//        fun minCount(e: Constraint) = e.minCount
-
-//        fun maxCount(e: Constraint) = e.maxCount
-
         private fun setValuesBlockToQueryPattern(query: Query, valuesBlock: List<Binding>) {
             val valuesBlockNew = ElementData()
             vars.map { varName: String ->
@@ -91,6 +87,12 @@ class Graph {
         }
     }
 
+    /**
+     * Parses the graph structure given the
+     * - graphQuery - defines the SHACL structure extraction
+     * - filterQuery - filters the constraints to be used
+     * - fieldQuery - defines which types will be considered fields (instead of nodes)
+     */
     fun parse(
         model: Model,
         graphQuery: Query,

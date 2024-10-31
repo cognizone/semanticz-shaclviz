@@ -3,10 +3,8 @@ package zone.cogni.semanticz.shaclviz.model
 import org.apache.jena.query.*
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
-import org.apache.jena.sparql.core.Var
-import org.apache.jena.sparql.engine.binding.Binding
-import org.apache.jena.sparql.syntax.ElementData
-import org.apache.jena.sparql.syntax.ElementGroup
+import zone.cogni.semanticz.shaclviz.util.JenaUtils.resultSetToValuesBlock
+import zone.cogni.semanticz.shaclviz.util.JenaUtils.setValuesBlockToQueryPattern
 
 /**
  * Representation of a graph structure.
@@ -39,52 +37,27 @@ class Graph {
             "maxCount"
         )
 
-        private fun resultSetToValuesBlock(resultSet: ResultSet): List<Binding> =
-            mutableListOf<Binding>().apply {
-                while (resultSet.hasNext()) {
-                    this.add(resultSet.nextBinding())
-                }
-            }
-
-        private fun setValuesBlockToQueryPattern(query: Query, valuesBlock: List<Binding>) {
-            val valuesBlockNew = ElementData()
-            vars.map { varName: String ->
-                valuesBlockNew.add(Var.alloc(varName))
-            }
-            valuesBlock.forEach { valuesBlockNew.add(it) }
-            ElementGroup().also {
-                it.addElement(valuesBlockNew)
-
-                val originalPattern = query.queryPattern as ElementGroup
-                for (el in originalPattern.elements) {
-                    it.addElement(el)
-                }
-                query.queryPattern = it
-            }
-        }
-
-        private fun parseConstraints(model: Model, graphQuery: Query, filterQuery: Query): List<Constraint> {
-            val edges = mutableListOf<Constraint>()
-            val valuesBlock = resultSetToValuesBlock(QueryExecution.create(graphQuery, model).execSelect())
-            setValuesBlockToQueryPattern(filterQuery, valuesBlock)
-
-            QueryExecution.create(filterQuery, ModelFactory.createDefaultModel()).execSelect()
-                .forEachRemaining { s: QuerySolution ->
-                    edges.add(
-                        Constraint(
-                            s[vars[0]].toString(),
-                            s[vars[1]]?.toString(),
-                            s[vars[2]]?.toString(),
-                            s[vars[3]]?.toString(),
-                            s[vars[4]]?.toString(),
-                            s[vars[5]]?.toString(),
-                            s[vars[6]]?.asLiteral()?.lexicalForm?.toInt(),
-                            s[vars[7]]?.asLiteral()?.lexicalForm,
+        private fun parseConstraints(model: Model, graphQuery: Query, filterQuery: Query): List<Constraint> =
+            mutableListOf<Constraint>().also {
+                filterQuery.setValuesBlockToQueryPattern(
+                    QueryExecution.create(graphQuery, model).execSelect().resultSetToValuesBlock()
+                )
+                QueryExecution.create(filterQuery, ModelFactory.createDefaultModel()).execSelect()
+                    .forEachRemaining { s: QuerySolution ->
+                        it.add(
+                            Constraint(
+                                s[vars[0]].toString(),
+                                s[vars[1]]?.toString(),
+                                s[vars[2]]?.toString(),
+                                s[vars[3]]?.toString(),
+                                s[vars[4]]?.toString(),
+                                s[vars[5]]?.toString(),
+                                s[vars[6]]?.asLiteral()?.lexicalForm?.toInt(),
+                                s[vars[7]]?.asLiteral()?.lexicalForm,
+                            )
                         )
-                    )
-                }
-            return edges
-        }
+                    }
+            }
     }
 
     /**
@@ -100,11 +73,10 @@ class Graph {
         fieldQuery: Query,
     ) {
         val constraints: List<Constraint> = parseConstraints(model, graphQuery, filterQuery)
-
         val fieldClasses = mutableListOf<String>()
 
         QueryExecution.create(fieldQuery, model).execSelect().forEachRemaining { s: QuerySolution ->
-            fieldClasses.add(s.get("field").toString())
+            fieldClasses.add(s["field"].toString())
         }
 
         constraints.forEach { edge ->

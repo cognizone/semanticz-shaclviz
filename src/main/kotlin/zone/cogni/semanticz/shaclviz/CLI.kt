@@ -7,7 +7,9 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import org.apache.jena.query.QueryFactory
+import org.apache.jena.rdf.model.ModelFactory
 import zone.cogni.semanticz.shaclviz.export.Exporter
+import zone.cogni.semanticz.shaclviz.model.Graph
 import java.io.File
 
 class Generate : CliktCommand() {
@@ -35,12 +37,16 @@ class Generate : CliktCommand() {
 
     override fun help(context: Context) = "Generates a diagram"
     override fun run() {
+        val model = ModelFactory.createDefaultModel().read(modelFile)
         val graphQuery = QueryFactory.create(loadResourceContent(graphQuery))
         val filterQuery = QueryFactory.create(loadResourceContent(filterQuery))
         val fieldQuery = QueryFactory.create(loadResourceContent(fieldQuery))
         val writer = File(outputFile).bufferedWriter()
         val exporter = Exporter.get(outputFormat)
-        DiagramGenerator(modelFile, graphQuery, filterQuery, fieldQuery, exporter, writer).generate()
+        Graph().apply {
+            parse(model, graphQuery, filterQuery, fieldQuery)
+            exporter.export(this, writer)
+        }
         writer.close()
     }
 }

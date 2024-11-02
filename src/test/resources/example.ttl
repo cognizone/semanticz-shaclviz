@@ -8,16 +8,23 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix schema: <http://schema.org/> .
 
-schema:Person rdfs:label "Person label"@en .
-
-schema:givenName rdfs:label "givenName label"@en .
+schema:Person rdfs:label "Person (entity label)"@en .
+schema:familyName rdfs:label "family name (entity label)"@en .
+schema:givenName rdfs:label "given name (entity label)"@en .
 
 :PersonShape
     a sh:NodeShape ;
     sh:targetClass schema:Person ;
     sh:property
         :givenNameShape,
-        :familyNameShape,
+        [
+            a sh:PropertyShape ;
+            sh:name "family name (shape label)"@en ;
+            sh:path schema:familyName ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ],
         :genderShape,
         :knowsShape,
         :addressShape
@@ -25,17 +32,8 @@ schema:givenName rdfs:label "givenName label"@en .
 
 :givenNameShape
     a sh:PropertyShape ;
-    sh:name "givenNameShape label"@en ;
     sh:path schema:givenName ;
     sh:datatype xsd:string ;
-    sh:maxCount 1 ;
-.
-
-:familyNameShape
-    a sh:PropertyShape ;
-    sh:path schema:familyName ;
-    sh:datatype xsd:string ;
-    sh:minCount 1 ;
     sh:maxCount 1 ;
 .
 

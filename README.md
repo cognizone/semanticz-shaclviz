@@ -15,7 +15,6 @@ The diagram generation works specific form of a SHACL file representing a _data 
 - a node shape to be visualized must have
   - `sh:targetClass` pointing to an IRI of a class
 - each property shape
-  - must be an IRI, not a blank node.
   - must have an `sh:path` pointing to an IRI of a property.
   - can have optionally these properties
     - `sh:datatype` 

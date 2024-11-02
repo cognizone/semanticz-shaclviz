@@ -10,6 +10,7 @@ import org.apache.jena.query.QueryFactory
 import org.apache.jena.rdf.model.ModelFactory
 import zone.cogni.semanticz.shaclviz.export.Exporter
 import zone.cogni.semanticz.shaclviz.model.Graph
+import zone.cogni.semanticz.shaclviz.util.Utils.loadResourceContent
 import java.io.File
 
 class Generate : CliktCommand() {
@@ -50,18 +51,5 @@ class Generate : CliktCommand() {
         writer.close()
     }
 }
-
-fun loadResourceContent(path: String): String? =
-    if (path.startsWith("classpath:")) {
-        val resourcePath = path.removePrefix("classpath:")
-        object {}.javaClass.getResourceAsStream(resourcePath)?.bufferedReader()?.use { it.readText() }
-    } else {
-        val file = File(path)
-        if (file.exists()) {
-            file.readText()
-        } else {
-            null
-        }
-    }
 
 fun main(args: Array<String>) = Generate().main(args)

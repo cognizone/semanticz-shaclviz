@@ -6,6 +6,9 @@ import org.apache.jena.sparql.engine.binding.Binding
 import org.apache.jena.sparql.syntax.ElementData
 import org.apache.jena.sparql.syntax.ElementGroup
 
+/**
+ * Extension functions for Jena
+ */
 object JenaUtils {
 
     /**

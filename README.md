@@ -21,7 +21,7 @@ The diagram generation works specific form of a SHACL file representing a _data 
     - `sh:datatype` 
     - `sh:maxCount` 
     - `sh:minCount`
-- labels are taken from `dc:title` of the given shape, or from `rdfs:label` of the target class/path property.
+- labels are taken from `rdfs:label` of the target ontology class/ontology property in the path. In case there is a `dc:title` of the given class shape (resp. `sh:name` of the given property shape), it overrides the label of the ontology entity. If neither label is present, it is extracted from the IRI.
 
 ## Minimal Example
 ```bash

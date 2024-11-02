@@ -1,6 +1,6 @@
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX sh: <http://www.w3.org/ns/shacl#>
-PREFIX dc: <http://purl.org/dc/terms/>
+PREFIX dct: <http://purl.org/dc/terms/>
 
 SELECT DISTINCT ?class ?property ?range ?className ?propertyName ?rangeName ?minCount ?maxCount {
     ?classShape sh:targetClass ?class .
@@ -11,13 +11,13 @@ SELECT DISTINCT ?class ?property ?range ?className ?propertyName ?rangeName ?min
         FILTER (lang(?classNameOntology)='en')
     }
     OPTIONAL {
-        ?classShape dc:title ?classNameShacl
+        ?classShape dct:title ?classNameShacl
         FILTER (lang(?classNameShacl)='en')
     }
     BIND(
         COALESCE(str(?classNameShacl),str(?classNameOntology),REPLACE(STR(
                                                                           ?class), "^.*?([_\\p{L}][-_\\p{L}\\p{N}]*)$", "$1"))
-        as ?className
+        AS ?className
     )
 
     OPTIONAL {

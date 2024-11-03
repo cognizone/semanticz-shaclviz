@@ -1,9 +1,7 @@
-package zone.cogni.semanticz.shaclviz
+package zone.cogni.semanticz.shaclviz.model
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import zone.cogni.semanticz.shaclviz.model.Type
-import zone.cogni.semanticz.shaclviz.model.Property
 
 class TypeTest {
 

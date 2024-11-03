@@ -50,3 +50,15 @@ schema:givenName rdfs:label "given name (entity label)"@en .
     sh:path schema:knows ;
     sh:class schema:Person ;
 .
+
+:ConceptShape
+    a sh:NodeShape ;
+    sh:targetClass skos:Concept ;
+    sh:property
+        [
+            sh:path skos:prefLabel ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ]
+.

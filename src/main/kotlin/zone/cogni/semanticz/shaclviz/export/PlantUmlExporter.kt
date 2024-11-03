@@ -22,8 +22,10 @@ class PlantUmlExporter : Exporter {
                 } else "") + "\n" +
                 "}\n\n"
 
-    override fun export(graph: Graph, writer: Writer) {
-        val result = "@startuml \nskinparam linetype polyline\n\n" + graph.nodes.mapIndexed { _, c ->
+    override fun export(graph: Graph, writer: Writer, hideOrphanNodes: Boolean) {
+        val result = "@startuml \nskinparam linetype polyline\n\n" + graph.nodes
+            .filter { n -> !hideOrphanNodes || n.fields.isNotEmpty() || graph.ins(n).isNotEmpty() || graph.outs(n).isNotEmpty() }
+            .mapIndexed { _, c ->
             render(graph.classIndex(c.iri), c)
         }.joinToString(separator = "\n") + "\n" + "\n" +
                 graph.edges.joinToString(separator = "\n") { e: Constraint ->

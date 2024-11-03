@@ -35,9 +35,9 @@ This generates a PlantUML file taking into account all property shapes, and cons
 echo "SELECT ?field {} VALUES ?field { <http://www.w3.org/2001/XMLSchema#string> <http://www.w3.org/2004/02/skos/core#Concept> }" > fieldQuery.rq 
 export SHACL_FILE=src/test/resources/example.ttl
 export OUTPUT_FILE=src/test/resources/example.puml
-./gradlew run --args="$SHACL_FILE $OUTPUT_FILE --fieldQuery=fieldQuery.rq"
+./gradlew run --args="$SHACL_FILE $OUTPUT_FILE --fieldQuery=fieldQuery.rq --hideOrphanNodes=false"
 ```
-Generates the same diagram, but showing `skos:Concept` as fields instead of nodes.
+Generates the same diagram, but showing `skos:Concept` as fields instead of nodes. The `--hideOrphanNodes=false` flag ensures that the also nodes (here 'string') without any in/out links and fields are shown in the diagram.
 
 ## Only visualize required edges/fields
 ```bash

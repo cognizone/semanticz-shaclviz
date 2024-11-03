@@ -101,4 +101,11 @@ class Graph {
 
     fun classIndex(n: String) =
         (nodes.indexOfFirst { it.iri == n } + 1).toString()
+
+    fun ins(n: Type) =
+        edges.filter { e -> e.classIri == n.iri }
+
+    fun outs(n: Type) =
+        edges.filter { e -> e.rangeIri == n.iri }
+
 }

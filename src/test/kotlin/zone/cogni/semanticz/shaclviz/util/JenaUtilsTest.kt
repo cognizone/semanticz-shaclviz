@@ -1,4 +1,4 @@
-package zone.cogni.semanticz.shaclviz
+package zone.cogni.semanticz.shaclviz.util
 
 import org.apache.jena.query.QueryExecution
 import org.apache.jena.query.QueryFactory

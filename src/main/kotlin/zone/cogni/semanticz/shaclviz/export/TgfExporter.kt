@@ -22,8 +22,10 @@ class TgfExporter : Exporter {
             } else ""
         }</body></html>"
 
-    override fun export(graph: Graph, writer: Writer) {
-        val result = graph.nodes.mapIndexed { index, c ->
+    override fun export(graph: Graph, writer: Writer, hideOrphanNodes: Boolean) {
+        val result = graph.nodes
+            .filter { n -> !hideOrphanNodes || n.fields.isNotEmpty() || graph.ins(n).isNotEmpty() || graph.outs(n).isNotEmpty() }
+            .mapIndexed { index, c ->
             "${index + 1} ${render(c)}"
         }.joinToString(separator = "\n") + "\n" + "#\n" +
                 graph.edges.joinToString(separator = "\n") { e: Constraint ->

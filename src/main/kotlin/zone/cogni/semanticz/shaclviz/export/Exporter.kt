@@ -20,6 +20,6 @@ interface Exporter {
     /**
      * Exports a graph to the writer.
      */
-    fun export(graph: Graph, writer: Writer)
+    fun export(graph: Graph, writer: Writer, hideOrphanNodes: Boolean)
 
 }

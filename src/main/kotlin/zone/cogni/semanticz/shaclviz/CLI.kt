@@ -36,6 +36,11 @@ class Generate : CliktCommand() {
             - 'tgf' - Trivial Graph Format importable by yEd. Suitable for full control over layout and further postprocessing.""".trimMargin()
     ).default("puml")
 
+    private val hideOrphanNodes by option(
+        "--hideOrphanNodes",
+        help = """In case a node has not inbound/outbound connection and no fields, it is hidden.""".trimMargin()
+    ).default("true")
+
     override fun help(context: Context) = "Generates a diagram"
     override fun run() {
         val model = ModelFactory.createDefaultModel().read(modelFile)
@@ -46,7 +51,7 @@ class Generate : CliktCommand() {
         val exporter = Exporter.get(outputFormat)
         Graph().apply {
             parse(model, graphQuery, filterQuery, fieldQuery)
-            exporter.export(this, writer)
+            exporter.export(this, writer, hideOrphanNodes.toBoolean())
         }
         writer.close()
     }

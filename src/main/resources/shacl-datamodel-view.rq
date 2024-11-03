@@ -22,8 +22,7 @@ SELECT DISTINCT ?class ?property ?range ?className ?propertyName ?rangeName ?min
 
     OPTIONAL {
         ?classShape sh:property ?propertyShape .
-        ?propertyShape a sh:PropertyShape ;
-            sh:path ?property ;
+        ?propertyShape sh:path ?property .
 
         ### Generate label
         OPTIONAL {
@@ -71,6 +70,6 @@ SELECT DISTINCT ?class ?property ?range ?className ?propertyName ?rangeName ?min
         BIND(COALESCE(?rangeClass,?rangeDatatypeX) AS ?range)
     }
 }
-GROUP BY ?class ?property ?range ?className ?propertyName ?rangeName ?minCount ?maxCount ?classDescription
+GROUP BY ?class ?property ?range ?className ?propertyName ?rangeName ?minCount ?maxCount
 ?propertyDescription
 ORDER BY ?className DESC(?propertyName) ?minCount ?maxCount ?rangeName

@@ -20,11 +20,6 @@ object Utils {
             val resourcePath = path.removePrefix("classpath:")
             object {}.javaClass.getResourceAsStream(resourcePath)?.bufferedReader()?.use { it.readText() }
         } else {
-            val file = File(path)
-            if (file.exists()) {
-                file.readText()
-            } else {
-                null
-            }
+            File(path).takeIf { it.exists() }?.readText()
         }
 }

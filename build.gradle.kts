@@ -48,8 +48,8 @@ publishing {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
 
-            artifact(tasks.getByName("kotlinSourcesJar"))
-            artifact(tasks.getByName("javadocJar"))
+            artifact(tasks.named("kotlinSourcesJar"))
+            artifact(tasks.named("javadocJar"))
 
             pom {
                 name.set("semanticz-shaclviz")
@@ -134,8 +134,8 @@ tasks.register<Jar>("kotlinSourcesJar") {
 // Create a Javadoc JAR using Dokka
 tasks.register<Jar>("javadocJar") {
     archiveClassifier.set("javadoc")
-    dependsOn(tasks.dokkaJavadoc)
-    from(tasks.dokkaJavadoc.get().outputDirectory)
+    dependsOn(tasks.named("dokkaJavadoc"))
+    from(tasks.named("dokkaJavadoc").get().outputs.files)
 }
 
 tasks.test {

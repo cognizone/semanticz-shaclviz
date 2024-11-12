@@ -1,42 +1,60 @@
 # SHACL Viz
 
-A simple UML-like diagram generator for SHACL data model backed by OWL ontologies, resulting to the following form:
-- nodes correspond to ontology classes (`sh:targetClass` of `sh:NodeShape`s)
-  - their labels are taken from `dc:title` of the node shapes (falling back to `rdfs:label` of the `sh:targetClass`)
-  - class labels contain also fields which are generated from `sh:PropertyShape`s for data type ranges. 
-- edges correspond to `sh:PropertyShape`s 
-  - their labels are taken from `sh:name` (falling back to `sh:description`)
-
-The generation is configurable, see [sample configuration](src/main/kotlin/zone/cogni/shacl/diagram/acqf/configurations/OverviewConfiguration.kt):
-- `filter` - filters domainClass-property-rangeClass combinations that will be ignored
-- `fieldClasses` - property IRIs that will be visualized as fields (not edges) to make the diagram more understandable. 
-
-The output graph format is TGF graph (importable by yEd) and are fully customizable (including various layouting options) in yEd.
-
-## Usage
-1. Generate diagram as shown in section Diagram Generation.
-2. Open the file in yEd editor.
-3. Execute "Fit Node to Size" and "Hierarchical Layout"
-4. Save the diagram as GraphML/Export it to the desired format (e.g. svg/png)
+This tool allows you to visualize SHACL data model files as a UML-like class diagram with the following features:
+- diagram nodes correspond to the target classes of `sh:targetClass` of `sh:NodeShape`, not the `sh:NodeShape` themselves.
+- class labels are taken from `dc:title` of the node shapes (falling back to `rdfs:label` of the `sh:targetClass`)
+- diagram edges correspond to `sh:PropertyShape`s
+- their labels are taken from `sh:name` (falling back to `sh:description`)
+- configurable RDFS classes/datatypes that will be visualized as fields (not edges) in the diagram.
+- configurable filter to ignore certain domainClass-property-rangeClass combinations (e.g. to select only required elements for the diagram)
+- export formats - PlantUML (auto-layout), TGF graph importable by yEd (for advanced layouts and manual editing)
 
 ## Diagram Generation
 
-### General
-For arbitrary SHACL file (importing and OWL ontology) you can generate yEd diagram as follows:
+The diagram generation works specific form of a SHACL file representing a _data model_ with the following constraints:
+- a node shape to be visualized must have
+  - `sh:targetClass` pointing to an IRI of a class
+- each property shape
+  - must have an `sh:path` pointing to an IRI of a property.
+  - can have optionally these properties
+    - `sh:datatype` 
+    - `sh:maxCount` 
+    - `sh:minCount`
+- labels are taken from `rdfs:label` of the target ontology class/ontology property in the path. In case there is a `dc:title` of the given class shape (resp. `sh:name` of the given property shape), it overrides the label of the ontology entity. If neither label is present, it is extracted from the IRI.
 
-`./gradlew run --args="../acqf.ttl output.tgf"`
+## Minimal Example
+```bash
+export SHACL_FILE=src/test/resources/example.ttl
+export OUTPUT_FILE=src/test/resources/example.puml
+./gradlew run --args="$SHACL_FILE $OUTPUT_FILE"
+```
+This generates a PlantUML file taking into account all property shapes, and considering only data types as fields.
 
-### ACQF
-For ACQF, there are predefined diagram configurations:
+## Make a class visualized as a field
+```bash
+echo "SELECT ?field {} VALUES ?field { <http://www.w3.org/2001/XMLSchema#string> <http://www.w3.org/2004/02/skos/core#Concept> }" > fieldQuery.rq 
+export SHACL_FILE=src/test/resources/example.ttl
+export OUTPUT_FILE=src/test/resources/example.puml
+./gradlew run --args="$SHACL_FILE $OUTPUT_FILE --fieldQuery=fieldQuery.rq --hideOrphanNodes=false"
+```
+Generates the same diagram, but showing `skos:Concept` as fields instead of nodes. The `--hideOrphanNodes=false` flag ensures that the also nodes (here 'string') without any in/out links and fields are shown in the diagram.
 
-Generate only overview model
+## Only visualize required edges/fields
+```bash
+export SHACL_FILE=src/test/resources/example.ttl
+export OUTPUT_FILE=src/test/resources/example.puml
+./gradlew run --args="$SHACL_FILE $OUTPUT_FILE --filterQuery=classpath:/edges-required-only.rq"
+```
+Filters out all constraints (edges/fields) that have `minCount < 1`.
 
-`./gradlew run --args="../acqf.ttl ../generated/graph-overview.tgf zone.cogni.shacl.diagram.acqf.configurations.OverviewConfiguration"`
-
-- Generate only required fields (plus selected optional ones) ACQF model
-
-`./gradlew run --args="../acqf.ttl ../generated/graph-required.tgf zone.cogni.shacl.diagram.acqf.configurations.RequiredConfiguration"`
-
-Generate full ACQF model
-
-`./gradlew run --args='../acqf.ttl ../generated/graph.tgf zone.cogni.shacl.diagram.acqf.configurations.FullConfiguration'`
+## Generate TGF for advanced layout
+```bash
+export SHACL_FILE=src/test/resources/example.ttl
+export OUTPUT_FILE=src/test/resources/example.tgf
+./gradlew run --args="$SHACL_FILE --outputFormat tgf $OUTPUT_FILE"
+```
+Generates a TGF graph.
+1. Open the TGF file in yEd editor.
+2. Execute "Fit Node to Size" and "Hierarchical Layout" (or choose another layout)
+3. Perform any manual editing/layout
+4. Save the diagram as GraphML/Export it to the desired format (e.g. svg/png)

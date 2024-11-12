@@ -1,4 +1,4 @@
-package zone.cogni.semanticz.shaclviz
+package zone.cogni.semanticz.shaclviz.model
 
 /**
  * Representation of a data model property.

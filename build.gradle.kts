@@ -32,6 +32,19 @@ repositories {
     mavenCentral()
 }
 
+// Create a sources JAR
+val kotlinSourcesJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    from(kotlin.sourceSets.main.get().kotlin)
+}
+
+// Create a Javadoc JAR using Dokka
+val javadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    dependsOn(tasks.named("dokkaJavadoc"))
+    from(tasks.named("dokkaJavadoc").get().outputs.files)
+}
+
 dependencies {
     implementation(libs.clikt)
     implementation(libs.clikt.markdown)
@@ -48,8 +61,8 @@ publishing {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
 
-            artifact(tasks.named("kotlinSourcesJar").get())
-            artifact(tasks.named("javadocJar").get())
+            artifact(kotlinSourcesJar)
+            artifact(javadocJar)
 
             pom {
                 name.set("semanticz-shaclviz")
@@ -125,19 +138,6 @@ tasks.jar {
     }
 }
 
-// Create a sources JAR
-tasks.register<Jar>("kotlinSourcesJar") {
-    archiveClassifier.set("sources")
-    from(kotlin.sourceSets.main.get().kotlin)
-}
-
-// Create a Javadoc JAR using Dokka
-tasks.register<Jar>("javadocJar") {
-    archiveClassifier.set("javadoc")
-    dependsOn(tasks.named("dokkaJavadoc"))
-    from(tasks.named("dokkaJavadoc").get().outputs.files)
-}
-
 tasks.test {
     useJUnitPlatform()
 }
@@ -149,4 +149,3 @@ kotlin {
 application {
     mainClass.set("zone.cogni.semanticz.shaclviz.CLIKt")
 }
-

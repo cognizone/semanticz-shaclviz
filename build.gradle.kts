@@ -32,14 +32,13 @@ repositories {
     mavenCentral()
 }
 
-// Create a sources JAR
-val kotlinSourcesJar by tasks.registering(Jar::class) {
+// Check if the tasks already exist and only register them if they do not exist
+val kotlinSourcesJar = tasks.findByName("kotlinSourcesJar") ?: tasks.register("kotlinSourcesJar", Jar::class) {
     archiveClassifier.set("sources")
     from(kotlin.sourceSets.main.get().kotlin)
 }
 
-// Create a Javadoc JAR using Dokka
-val javadocJar by tasks.registering(Jar::class) {
+val javadocJar = tasks.findByName("javadocJar") ?: tasks.register("javadocJar", Jar::class) {
     archiveClassifier.set("javadoc")
     dependsOn(tasks.named("dokkaJavadoc"))
     from(tasks.named("dokkaJavadoc").get().outputs.files)
@@ -61,8 +60,8 @@ publishing {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
 
-            artifact(kotlinSourcesJar)
-            artifact(javadocJar)
+            artifact(kotlinSourcesJar.get())
+            artifact(javadocJar.get())
 
             pom {
                 name.set("semanticz-shaclviz")

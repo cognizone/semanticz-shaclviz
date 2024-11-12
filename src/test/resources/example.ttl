@@ -1,0 +1,64 @@
+@prefix : <https://data.cogni.zone/test/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix schema: <http://schema.org/> .
+
+schema:Person rdfs:label "Person (entity label)"@en .
+schema:familyName rdfs:label "family name (entity label)"@en .
+schema:givenName rdfs:label "given name (entity label)"@en .
+
+:PersonShape
+    a sh:NodeShape ;
+    sh:targetClass schema:Person ;
+    sh:property
+        :givenNameShape,
+        [
+            a sh:PropertyShape ;
+            sh:name "family name (shape label)"@en ;
+            sh:path schema:familyName ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ],
+        :genderShape,
+        :knowsShape,
+        :addressShape
+.
+
+:givenNameShape
+    a sh:PropertyShape ;
+    sh:path schema:givenName ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+.
+
+:genderShape
+    a sh:PropertyShape ;
+    sh:path schema:gender ;
+    sh:class skos:Concept ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+.
+
+:knowsShape
+    a sh:PropertyShape ;
+    sh:path schema:knows ;
+    sh:class schema:Person ;
+.
+
+:ConceptShape
+    a sh:NodeShape ;
+    sh:targetClass skos:Concept ;
+    sh:property
+        [
+            sh:path skos:prefLabel ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ]
+.

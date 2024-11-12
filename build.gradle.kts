@@ -5,6 +5,7 @@ plugins {
     id("maven-publish")
     id("signing")
     id("pl.allegro.tech.build.axion-release") version "1.13.7"
+    id("org.jetbrains.dokka") version "1.8.10"
 }
 
 group = "zone.cogni.semanticz"
@@ -130,7 +131,7 @@ tasks.register<Jar>("kotlinSourcesJar") {
     from(kotlin.sourceSets.main.get().kotlin)
 }
 
-// Create a Javadoc JAR
+// Create a Javadoc JAR using Dokka
 tasks.register<Jar>("javadocJar") {
     archiveClassifier.set("javadoc")
     dependsOn(tasks.dokkaJavadoc)

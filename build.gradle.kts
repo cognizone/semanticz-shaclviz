@@ -47,6 +47,9 @@ publishing {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
 
+            artifact(tasks.getByName("kotlinSourcesJar"))
+            artifact(tasks.getByName("javadocJar"))
+
             pom {
                 name.set("semanticz-shaclviz")
                 description.set("A tool to create flexible SHACL diagrams in PlantUML or yEd")
@@ -109,7 +112,6 @@ publishing {
     // Signing configuration
     extensions.configure<SigningExtension> {
         if (project.hasProperty("publishToMavenCentral") || project.hasProperty("publishToCognizoneNexus")) {
-            
             sign(extensions.getByType<PublishingExtension>().publications["mavenJava"])
         }
     }
@@ -120,6 +122,19 @@ tasks.jar {
         include("LICENSE")
         into("META-INF")
     }
+}
+
+// Create a sources JAR
+tasks.register<Jar>("kotlinSourcesJar") {
+    archiveClassifier.set("sources")
+    from(kotlin.sourceSets.main.get().kotlin)
+}
+
+// Create a Javadoc JAR
+tasks.register<Jar>("javadocJar") {
+    archiveClassifier.set("javadoc")
+    dependsOn(tasks.dokkaJavadoc)
+    from(tasks.dokkaJavadoc.get().outputDirectory)
 }
 
 tasks.test {

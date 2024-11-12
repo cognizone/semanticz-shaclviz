@@ -149,3 +149,4 @@ kotlin {
 application {
     mainClass.set("zone.cogni.semanticz.shaclviz.CLIKt")
 }
+

@@ -5,6 +5,7 @@ plugins {
     id("maven-publish")
     id("signing")
     id("pl.allegro.tech.build.axion-release") version "1.13.7"
+    id("org.jetbrains.dokka") version "1.8.10"
 }
 
 group = "zone.cogni.semanticz"
@@ -31,6 +32,18 @@ repositories {
     mavenCentral()
 }
 
+// Use existing tasks if they already exist
+val kotlinSourcesJar = tasks.findByName("kotlinSourcesJar") ?: tasks.register("kotlinSourcesJar", Jar::class) {
+    archiveClassifier.set("sources")
+    from(kotlin.sourceSets.main.get().kotlin)
+}
+
+val javadocJar = tasks.findByName("javadocJar") ?: tasks.register("javadocJar", Jar::class) {
+    archiveClassifier.set("javadoc")
+    dependsOn(tasks.named("dokkaJavadoc"))
+    from(tasks.named("dokkaJavadoc").get().outputs.files)
+}
+
 dependencies {
     implementation(libs.clikt)
     implementation(libs.clikt.markdown)
@@ -46,6 +59,9 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+
+            artifact(kotlinSourcesJar)
+            artifact(javadocJar)
 
             pom {
                 name.set("semanticz-shaclviz")
@@ -76,43 +92,42 @@ publishing {
         }
     }
 
-     repositories {
-            // Cognizone Nexus repository
-            if (project.hasProperty("publishToCognizoneNexus")) {
-                maven {
-                    credentials {
-                        username = System.getProperty("nexus.username")
-                        password = System.getProperty("nexus.password")
-                    }
-                    val releasesRepoUrl = "${System.getProperty("nexus.url")}/repository/cognizone-release"
-                    val snapshotsRepoUrl = "${System.getProperty("nexus.url")}/repository/cognizone-snapshot"
-                    url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
-                    isAllowInsecureProtocol = true
+    repositories {
+        // Cognizone Nexus repository
+        if (project.hasProperty("publishToCognizoneNexus")) {
+            maven {
+                credentials {
+                    username = System.getProperty("nexus.username")
+                    password = System.getProperty("nexus.password")
                 }
+                val releasesRepoUrl = "${System.getProperty("nexus.url")}/repository/cognizone-release"
+                val snapshotsRepoUrl = "${System.getProperty("nexus.url")}/repository/cognizone-snapshot"
+                url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+                isAllowInsecureProtocol = true
             }
+        }
 
-            // Maven Central repository
-            if (project.hasProperty("publishToMavenCentral")) {
-                maven {
-                    credentials {
-                        username = System.getProperty("ossrh.username")
-                        password = System.getProperty("ossrh.password")
-                    }
-                    val stagingRepoUrl = "${System.getProperty("ossrh.url")}/service/local/staging/deploy/maven2"
-                    val snapshotsRepoUrl = "${System.getProperty("ossrh.url")}/content/repositories/snapshots"
-                    url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else stagingRepoUrl)
+        // Maven Central repository
+        if (project.hasProperty("publishToMavenCentral")) {
+            maven {
+                credentials {
+                    username = System.getProperty("ossrh.username")
+                    password = System.getProperty("ossrh.password")
                 }
+                val stagingRepoUrl = "${System.getProperty("ossrh.url")}/service/local/staging/deploy/maven2"
+                val snapshotsRepoUrl = "${System.getProperty("ossrh.url")}/content/repositories/snapshots"
+                url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else stagingRepoUrl)
             }
         }
     }
+}
 
-    // Signing configuration
-    extensions.configure<SigningExtension> {
-        if (project.hasProperty("publishToMavenCentral") || project.hasProperty("publishToCognizoneNexus")) {
-            
-            sign(extensions.getByType<PublishingExtension>().publications["mavenJava"])
-        }
+// Signing configuration
+extensions.configure<SigningExtension> {
+    if (project.hasProperty("publishToMavenCentral") || project.hasProperty("publishToCognizoneNexus")) {
+        sign(extensions.getByType<PublishingExtension>().publications["mavenJava"])
     }
+}
 
 // Include LICENSE file in META-INF folder of the jar
 tasks.jar {

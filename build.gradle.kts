@@ -32,7 +32,7 @@ repositories {
     mavenCentral()
 }
 
-// Check if the tasks already exist and only register them if they do not exist
+// Use existing tasks if they already exist
 val kotlinSourcesJar = tasks.findByName("kotlinSourcesJar") ?: tasks.register("kotlinSourcesJar", Jar::class) {
     archiveClassifier.set("sources")
     from(kotlin.sourceSets.main.get().kotlin)
@@ -60,8 +60,8 @@ publishing {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
 
-            artifact(kotlinSourcesJar.get())
-            artifact(javadocJar.get())
+            artifact(kotlinSourcesJar)
+            artifact(javadocJar)
 
             pom {
                 name.set("semanticz-shaclviz")

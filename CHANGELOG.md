@@ -1,4 +1,6 @@
-1.0.0-SNAPSHOT
+x.x.x
+
+1.0.0
 - SHACL diagram generation for the targetClasses (not shapes)
 - ability to visualize chosen classes as attributes (not as nodes)
 - support for cardinalities

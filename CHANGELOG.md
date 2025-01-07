@@ -1,4 +1,5 @@
-x.x.x
+1.0.1
+- making the distribution executable
 
 1.0.0
 - SHACL diagram generation for the targetClasses (not shapes)

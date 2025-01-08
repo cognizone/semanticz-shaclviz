@@ -12,6 +12,7 @@ VALUES ?field {
     xsd:anyURI
     xsd:boolean
     xsd:duration
+    xsd:double
     xsd:decimal
     rdf:HTML
 }

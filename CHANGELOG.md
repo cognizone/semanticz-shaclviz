@@ -1,3 +1,6 @@
+1.0.1
+- making the distribution executable
+
 1.0.0
 - SHACL diagram generation for the targetClasses (not shapes)
 - ability to visualize chosen classes as attributes (not as nodes)

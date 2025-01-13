@@ -72,9 +72,11 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifact(kotlinSourcesJar.get())
-            artifact(javadocJar.get())
-            artifact(fatJar.get()) { classifier = "executable" }
+            artifact(kotlinSourcesJar) // Lazy reference to kotlinSourcesJar
+            artifact(javadocJar)       // Lazy reference to javadocJar
+            artifact(fatJar) {         // Lazy reference to fatJar
+                classifier = "executable"
+            }
 
             pom {
                 name.set("semanticz-shaclviz")

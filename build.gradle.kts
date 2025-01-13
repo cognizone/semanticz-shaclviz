@@ -154,18 +154,20 @@ application {
 }
 
 tasks {
-    val fatJar = tasks.register<Jar>("fatJar") {
-    dependsOn("compileJava", "compileKotlin", "processResources")
-    archiveClassifier.set("executable")
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest { attributes(mapOf("Main-Class" to application.mainClass)) }
-    val sourcesMain = sourceSets.main.get()
-    val contents = configurations.runtimeClasspath.get()
-        .map { if (it.isDirectory) it else zipTree(it) } +
-            sourcesMain.output
-    from(contents)
-}
+    val fatJar by registering(Jar::class) {
+        dependsOn("compileJava", "compileKotlin", "processResources")
+        archiveClassifier.set("executable")
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        manifest { attributes(mapOf("Main-Class" to application.mainClass)) }
+        val sourcesMain = sourceSets.main.get()
+        val contents = configurations.runtimeClasspath.get()
+            .map { if (it.isDirectory) it else zipTree(it) } +
+                sourcesMain.output
+        from(contents)
+    }
+
     build {
         dependsOn(fatJar)
     }
 }
+

@@ -45,8 +45,8 @@ val fatJar by tasks.registering(Jar::class) {
     from(contents)
 }
 
-// Register source and Javadoc jars
-val kotlinSourcesJar by tasks.registering(Jar::class) {
+// Use existing tasks if they already exist
+val kotlinSourcesJar = tasks.findByName("kotlinSourcesJar") ?: tasks.register("kotlinSourcesJar", Jar::class) {
     archiveClassifier.set("sources")
     from(kotlin.sourceSets.main.get().kotlin)
 }

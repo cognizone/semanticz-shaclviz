@@ -32,6 +32,19 @@ repositories {
     mavenCentral()
 }
 
+// Define the fatJar task
+val fatJar by tasks.registering(Jar::class) {
+    dependsOn("compileJava", "compileKotlin", "processResources")
+    archiveClassifier.set("executable")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest { attributes(mapOf("Main-Class" to application.mainClass)) }
+    val sourcesMain = sourceSets.main.get()
+    val contents = configurations.runtimeClasspath.get()
+        .map { if (it.isDirectory) it else zipTree(it) } +
+            sourcesMain.output
+    from(contents)
+}
+
 // Use existing tasks if they already exist
 val kotlinSourcesJar = tasks.findByName("kotlinSourcesJar") ?: tasks.register("kotlinSourcesJar", Jar::class) {
     archiveClassifier.set("sources")
@@ -62,8 +75,8 @@ publishing {
             artifact(kotlinSourcesJar)
             artifact(javadocJar)
 
-            // Add the fatJar artifact
-            artifact(tasks.named("fatJar").get()) {
+             // Add the fatJar artifact
+            artifact(fatJar.get()) {
                 classifier = "executable"
             }
 
@@ -153,21 +166,7 @@ application {
     mainClass.set("zone.cogni.semanticz.shaclviz.CLIKt")
 }
 
-tasks {
-    val fatJar by registering(Jar::class) {
-        dependsOn("compileJava", "compileKotlin", "processResources")
-        archiveClassifier.set("executable")
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        manifest { attributes(mapOf("Main-Class" to application.mainClass)) }
-        val sourcesMain = sourceSets.main.get()
-        val contents = configurations.runtimeClasspath.get()
-            .map { if (it.isDirectory) it else zipTree(it) } +
-                sourcesMain.output
-        from(contents)
-    }
-
-    build {
-        dependsOn(fatJar)
-    }
+tasks.build {
+    dependsOn(fatJar)
 }
 

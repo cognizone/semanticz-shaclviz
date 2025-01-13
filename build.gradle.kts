@@ -45,13 +45,13 @@ val fatJar by tasks.registering(Jar::class) {
     from(contents)
 }
 
-// Use existing tasks if they already exist
-val kotlinSourcesJar = tasks.findByName("kotlinSourcesJar") ?: tasks.register("kotlinSourcesJar", Jar::class) {
+// Register source and Javadoc jars
+val kotlinSourcesJar by tasks.registering(Jar::class) {
     archiveClassifier.set("sources")
     from(kotlin.sourceSets.main.get().kotlin)
 }
 
-val javadocJar = tasks.findByName("javadocJar") ?: tasks.register("javadocJar", Jar::class) {
+val javadocJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
     dependsOn(tasks.named("dokkaJavadoc"))
     from(tasks.named("dokkaJavadoc").get().outputs.files)
@@ -67,37 +67,30 @@ dependencies {
     testImplementation(libs.junit.jupiter)
 }
 
-// Publishing configuration including Cognizone Nexus and Maven Central
+// Publishing configuration
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifact(kotlinSourcesJar)
-            artifact(javadocJar)
-
-             // Add the fatJar artifact
-            artifact(fatJar.get()) {
-                classifier = "executable"
-            }
+            artifact(kotlinSourcesJar.get())
+            artifact(javadocJar.get())
+            artifact(fatJar.get()) { classifier = "executable" }
 
             pom {
                 name.set("semanticz-shaclviz")
                 description.set("A tool to create flexible SHACL diagrams in PlantUML or yEd")
                 url.set("https://github.com/cognizone/semanticz-shaclviz")
-
                 scm {
                     connection.set("scm:git@github.com/cognizone/semanticz-shaclviz.git")
                     developerConnection.set("scm:git@github.com/cognizone/semanticz-shaclviz.git")
                     url.set("https://github.com/cognizone/semanticz-shaclviz.git")
                 }
-
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
                         url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
                     }
                 }
-
                 developers {
                     developer {
                         id.set("cognizone")
@@ -110,7 +103,6 @@ publishing {
     }
 
     repositories {
-        // Cognizone Nexus repository
         if (project.hasProperty("publishToCognizoneNexus")) {
             maven {
                 credentials {
@@ -124,7 +116,6 @@ publishing {
             }
         }
 
-        // Maven Central repository
         if (project.hasProperty("publishToMavenCentral")) {
             maven {
                 credentials {
@@ -146,7 +137,7 @@ extensions.configure<SigningExtension> {
     }
 }
 
-// Include LICENSE file in META-INF folder of the jar
+// Include LICENSE file in META-INF folder
 tasks.jar {
     from(projectDir) {
         include("LICENSE")
@@ -158,10 +149,8 @@ tasks.test {
     useJUnitPlatform()
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
+kotlin {
+    jvmToolchain(17)
 }
 
 application {
@@ -171,4 +160,3 @@ application {
 tasks.build {
     dependsOn(fatJar)
 }
-

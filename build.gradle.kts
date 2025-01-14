@@ -163,9 +163,15 @@ tasks {
         dependsOn(fatJar)
     }
 }
-// AfterEvaluate block to add fatJar to publication
 afterEvaluate {
-    publishing.publications["mavenJava"].artifact(tasks.named("fatJar")) {
-        classifier = "executable"
+    publishing {
+        publications {
+            val mavenJava = getByName<MavenPublication>("mavenJava")
+            mavenJava.artifact(tasks.named<Jar>("fatJar").get()) {
+                builtBy(tasks.named("fatJar"))
+                this.classifier = "executable"
+            }
+        }
     }
 }
+

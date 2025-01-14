@@ -32,26 +32,13 @@ repositories {
     mavenCentral()
 }
 
-// Define the fatJar task
-val fatJar by tasks.registering(Jar::class) {
-    dependsOn("compileJava", "compileKotlin", "processResources")
-    archiveClassifier.set("executable")
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest { attributes(mapOf("Main-Class" to application.mainClass)) }
-    val sourcesMain = sourceSets.main.get()
-    val contents = configurations.runtimeClasspath.get()
-        .map { if (it.isDirectory) it else zipTree(it) } +
-            sourcesMain.output
-    from(contents)
-}
-
 // Use existing tasks if they already exist
 val kotlinSourcesJar = tasks.findByName("kotlinSourcesJar") ?: tasks.register("kotlinSourcesJar", Jar::class) {
     archiveClassifier.set("sources")
     from(kotlin.sourceSets.main.get().kotlin)
 }
 
-val javadocJar by tasks.registering(Jar::class) {
+val javadocJar = tasks.findByName("javadocJar") ?: tasks.register("javadocJar", Jar::class) {
     archiveClassifier.set("javadoc")
     dependsOn(tasks.named("dokkaJavadoc"))
     from(tasks.named("dokkaJavadoc").get().outputs.files)
@@ -67,32 +54,31 @@ dependencies {
     testImplementation(libs.junit.jupiter)
 }
 
-// Publishing configuration
+// Publishing configuration including Cognizone Nexus and Maven Central
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifact(kotlinSourcesJar) // Lazy reference to kotlinSourcesJar
-            artifact(javadocJar)       // Lazy reference to javadocJar
-            artifact(fatJar) {         // Lazy reference to fatJar
-                classifier = "executable"
-            }
-
+            artifact(kotlinSourcesJar)
+            artifact(javadocJar)
             pom {
                 name.set("semanticz-shaclviz")
                 description.set("A tool to create flexible SHACL diagrams in PlantUML or yEd")
                 url.set("https://github.com/cognizone/semanticz-shaclviz")
+
                 scm {
                     connection.set("scm:git@github.com/cognizone/semanticz-shaclviz.git")
                     developerConnection.set("scm:git@github.com/cognizone/semanticz-shaclviz.git")
                     url.set("https://github.com/cognizone/semanticz-shaclviz.git")
                 }
+
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
                         url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
                     }
                 }
+
                 developers {
                     developer {
                         id.set("cognizone")
@@ -105,6 +91,7 @@ publishing {
     }
 
     repositories {
+        // Cognizone Nexus repository
         if (project.hasProperty("publishToCognizoneNexus")) {
             maven {
                 credentials {
@@ -118,6 +105,7 @@ publishing {
             }
         }
 
+        // Maven Central repository
         if (project.hasProperty("publishToMavenCentral")) {
             maven {
                 credentials {
@@ -139,7 +127,7 @@ extensions.configure<SigningExtension> {
     }
 }
 
-// Include LICENSE file in META-INF folder
+// Include LICENSE file in META-INF folder of the jar
 tasks.jar {
     from(projectDir) {
         include("LICENSE")
@@ -159,6 +147,19 @@ application {
     mainClass.set("zone.cogni.semanticz.shaclviz.CLIKt")
 }
 
-tasks.build {
-    dependsOn(fatJar)
+tasks {
+    val fatJar = register<Jar>("fatJar") {
+        dependsOn.addAll(listOf("compileJava", "compileKotlin", "processResources"))
+        archiveClassifier.set("executable")
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        manifest { attributes(mapOf("Main-Class" to application.mainClass)) }
+        val sourcesMain = sourceSets.main.get()
+        val contents = configurations.runtimeClasspath.get()
+            .map { if (it.isDirectory) it else zipTree(it) } +
+                sourcesMain.output
+        from(contents)
+    }
+    build {
+        dependsOn(fatJar)
+    }
 }

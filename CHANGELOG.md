@@ -1,3 +1,6 @@
+1.0.2
+- fix to the build pipeline
+
 1.0.1
 - making the distribution executable
 

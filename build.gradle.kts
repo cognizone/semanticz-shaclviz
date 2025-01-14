@@ -61,6 +61,9 @@ publishing {
             from(components["java"])
             artifact(kotlinSourcesJar)
             artifact(javadocJar)
+            artifact(tasks.named("fatJar")) {
+                classifier = "executable" 
+            }
             pom {
                 name.set("semanticz-shaclviz")
                 description.set("A tool to create flexible SHACL diagrams in PlantUML or yEd")

@@ -61,9 +61,6 @@ publishing {
             from(components["java"])
             artifact(kotlinSourcesJar)
             artifact(javadocJar)
-            artifact(tasks.named("fatJar")) {
-                classifier = "executable" 
-            }
             pom {
                 name.set("semanticz-shaclviz")
                 description.set("A tool to create flexible SHACL diagrams in PlantUML or yEd")
@@ -164,5 +161,11 @@ tasks {
     }
     build {
         dependsOn(fatJar)
+    }
+}
+// AfterEvaluate block to add fatJar to publication
+afterEvaluate {
+    publishing.publications["mavenJava"].artifact(tasks.named("fatJar")) {
+        classifier = "executable"
     }
 }

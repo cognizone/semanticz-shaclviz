@@ -163,3 +163,14 @@ tasks {
         dependsOn(fatJar)
     }
 }
+afterEvaluate {
+    publishing {
+        publications {
+            val mavenJava = getByName<MavenPublication>("mavenJava")
+            mavenJava.artifact(tasks.named<Jar>("fatJar").get()) {
+                builtBy(tasks.named("fatJar"))
+                this.classifier = "executable"
+            }
+        }
+    }
+}

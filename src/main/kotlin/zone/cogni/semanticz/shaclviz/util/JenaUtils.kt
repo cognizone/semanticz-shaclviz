@@ -58,7 +58,8 @@ object JenaUtils {
         }
         this.queryPattern = ElementGroup().also { eg ->
             eg.addElement(ElementData().apply {
-                valuesBlock[0].vars().forEach { this.add(it) }
+                // Collect all unique variables from all bindings before adding any bindings
+                valuesBlock.flatMap { it.vars().asSequence().toList() }.distinct().forEach { this.add(it) }
                 valuesBlock.forEach { this.add(it) }
             })
             (this.queryPattern as ElementGroup).elements.forEach { el -> eg.addElement(el) }

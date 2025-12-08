@@ -66,4 +66,41 @@ class JenaUtilsTest {
         Assertions.assertEquals("https://c", b["o"].toString())
         Assertions.assertFalse(rs.hasNext())
     }
+
+    @Test
+    fun testSetValuesBlockToQueryPatternWithIncompleteBindings() {
+        val q = QueryFactory.create("SELECT * { }")
+        val bindings = listOf(
+            BindingFactory.binding(
+                Var.alloc("s"), ResourceFactory.createResource("https://a").asNode(),
+                Var.alloc("p"), ResourceFactory.createResource("https://b").asNode()
+            ),
+            BindingFactory.binding(
+                Var.alloc("s"), ResourceFactory.createResource("https://c").asNode(),
+                Var.alloc("o"), ResourceFactory.createResource("https://d").asNode()
+            )
+        )
+        q.setValuesBlockToQueryPattern(bindings)
+        Assertions.assertFalse(q.hasValues())
+
+        println(q.toString())
+
+        val rs = QueryExecution.create(q, ModelFactory.createDefaultModel()).execSelect()
+        Assertions.assertTrue(rs.hasNext())
+        
+        // First binding should have s and p, but not o (should be null/unbound)
+        val b1 = rs.nextBinding()
+        Assertions.assertEquals("https://a", b1["s"].toString())
+        Assertions.assertEquals("https://b", b1["p"].toString())
+        Assertions.assertNull(b1.get(Var.alloc("o")))
+        
+        // Second binding should have s and o, but not p (should be null/unbound)
+        Assertions.assertTrue(rs.hasNext())
+        val b2 = rs.nextBinding()
+        Assertions.assertEquals("https://c", b2["s"].toString())
+        Assertions.assertEquals("https://d", b2["o"].toString())
+        Assertions.assertNull(b2.get(Var.alloc("p")))
+        
+        Assertions.assertFalse(rs.hasNext())
+    }
 }
